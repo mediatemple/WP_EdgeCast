@@ -10,6 +10,14 @@ function wp_edgecast_init() {
 	);
 
 	add_settings_field(
+		'wp_edgecast_setting_account_num',	// id
+		'Account Number',			// title
+		'wp_edgecast_setting_account_num_fn',	// callback
+		'wp_edgecast', 				// page
+		'wp_edgecast_settings_section'		// section
+	);
+
+	add_settings_field(
 		'wp_edgecast_setting_api_token',	// id
 		'API Key',				// title
 		'wp_edgecast_setting_api_token_fn',	// callback
@@ -56,6 +64,14 @@ function wp_edgecast_setting_section_fn() {
 	// output for the settings page header
 	echo '<p>Here is where you can fill in all the appropriate settings for the EdgeCast API calls.</p>';
 	echo '<p>The cache will be purged when a post is created or modified, and as comments are added.</p>';
+}
+
+function wp_edgecast_setting_account_num_fn() {
+	// output for the account number box
+	$options = get_option('wp_edgecast_options');
+	echo '<input name="wp_edgecast_options[account_num]" type="text" value="' . $options['account_num'] . '" size="50"/>';
+	echo '&nbsp;';
+	echo 'Please enter your EdgeCast account number from the top-right corner of the EdgeCast control panel.';
 }
 
 function wp_edgecast_setting_api_token_fn() {
@@ -154,8 +170,52 @@ END;
 		}
 	}
 	
+	$options = get_option('wp_edgecast_options');
+	foreach($urls as $url) {
+		$data = array(
+			'MediaType' => $options['media_type'],
+			'MediaPath' => str_replace(
+				'//', 
+				'/', 
+				str_replace(
+					get_bloginfo('siteurl'), 
+					$options['url'], 
+					$url
+				) . '/*'
+			)
+		);
+		$json_data = json_encode( $data );
+		$tmpfile = tmpfile();
+		fwrite( $tmpfile, $json_data );
+		fseek( $tmpfile, 0 );
+		$ch = curl_init();
+		curl_setopt($ch, CURLOPT_URL, 'http://api.edgecast.com/v2/mcc/customers/' . $options['account_num'] . '/edge/purge');
+		curl_setopt($ch, CURLOPT_PUT, true);
+		curl_setopt($ch, CURLOPT_INFILE, $tmpfile);
+		curl_setopt($ch, CURLOPT_INFILESIZE, strlen( $json_data ));
+		curl_setopt($ch, CURLOPT_VERBOSE, true);
+		curl_setopt($ch, CURLOPT_HTTPHEADER, 
+			array(
+				'Authorization'	=> 'TOK:'. $options['api_token'],
+				'Accept'	=> 'application/json',
+				'Content-Type'	=> 'application/json'
+			) 
+		);
+
+		$result = curl_exec( $ch );
+		curl_close( $ch );
+	}
 	echo "<pre>";
 	var_dump( $urls );
+}
+
+function wp_edgecast_comment_post( $comment_id, $approval_status ) {
+	if ( $approval_status != 1 ) {
+		return;
+	}
+
+	$comment = get_comment( $comment_id );
+	wp_edgecast_publish_post( $comment->comment_post_ID, get_post( $comment->comment_post_ID ) );
 }
 
 ?>

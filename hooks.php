@@ -18,4 +18,5 @@ add_action('admin_init', 'wp_edgecast_init');
 add_action('admin_menu', 'wp_edgecast_settings_page');
 
 add_action('wp_insert_post', 'wp_edgecast_publish_post', 12, 2);
+add_action('comment_post', 'wp_edgecast_comment_post', 12, 2);
 ?>
