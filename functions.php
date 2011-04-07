@@ -245,6 +245,7 @@ END;
 		// setup our curl stuff
 		$ch = curl_init();
 		curl_setopt($ch, CURLOPT_URL, 'http://api.edgecast.com/v2/mcc/customers/' . $options['account_num'] . '/edge/purge');
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 		curl_setopt($ch, CURLOPT_PUT, true);
 		curl_setopt($ch, CURLOPT_INFILE, $tmpfile);
 		curl_setopt($ch, CURLOPT_INFILESIZE, strlen( $json_data ));
