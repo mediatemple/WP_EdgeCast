@@ -222,7 +222,7 @@ END;
 	foreach( $taxonomies as $taxonomy ) {
 		$terms = get_the_terms( $post_id, $taxonomy['taxonomy'] );
 		foreach( $terms as $term ) {
-			array_push( $urls, get_term_link( $term, $taxonomy ) );
+			array_push( $urls, get_term_link( $term, $taxonomy['taxonomy'] ) );
 		}
 	}
 
