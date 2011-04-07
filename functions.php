@@ -152,6 +152,7 @@ function wp_edgecast_options_validate($input) {
 	if ( $input['url'] ) {
 		if ( $input['url'] == '' ) {
 			$input['url'] = false;
+            $input['enabed'] = false;
 		} else {
 			// make sure it starts with http
 			if ( ! preg_match('/^http:\/\//',  $input['url']) ) {
@@ -163,18 +164,22 @@ function wp_edgecast_options_validate($input) {
 		}
 	} else {
 		$input['url'] = false;
+        $input['enabled'] = false;
 	}
 
 	if ( ! $input['api_token'] || $input['api_token'] == '' ) {
 		$input['api_token'] = false;
+        $input['enabled'] = false;
 	}
 	
 	if ( ! $input['account_num'] || $input['account_num'] == '' ) {
 		$input['account_num'] = false;
+        $input['enabled'] = false;
 	}
 
 	if ( ! $input['media_type'] ) {
 		$input['media_type'] = false;
+        $input['enabled'] = false;
 	}
 
 	return $input;
