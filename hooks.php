@@ -1,14 +1,14 @@
 <?php
 /**
  * @package WP_EdgeCast
- * @version 0.1
+ * @version 0.2
  */
 /*
 Plugin Name: WP_EdgeCast
 Plugin URI: http://github.com/naydichev/WP_EdgeCast
 Description: Plugin to purge EdgeCast cache for posts and comments.
 Author: Julian Naydichev
-Version: 0.1
+Version: 0.2
 Author URI: http://github.com/naydichev/
 */
 
