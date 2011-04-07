@@ -200,8 +200,7 @@ function wp_edgecast_publish_post($post_id, $post) {
 		return;
 
 	$urls = array(
-		get_bloginfo('siteurl', 'raw'),
-		get_bloginfo('home', 'raw'),
+		get_bloginfo('url', 'raw'),
 		get_permalink( $post_id )
 	);
 
@@ -227,7 +226,7 @@ END;
 	}
 
 	// store data
-	$blog_url = get_bloginfo('siteurl');
+	$blog_url = get_bloginfo('url');
 
 	foreach($urls as $url) {
 		// prepare our data
