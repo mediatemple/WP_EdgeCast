@@ -1,0 +1,33 @@
+=== WP_EdgeCast ===
+Contributors: naydichev
+Tags: EdgeCast, CDN, purge
+Requires at least: 3.1
+Tested up to: 3.1.1
+
+This is basically a plugin to purge data from the EdgeCast CDN when you make / change a post or add comments.
+
+== Description ==
+
+If you have your EdgeCast CDN configured in a way that it is caching all of your posts, this will identify all pages necessary and purge them when a post is changed / created. This ensures that, even if the cache hasn't expired, your visitors will see the most up-to-date content.
+
+== Installation ==
+
+Download and upload the WP_EdgeCast folder to the wp-content/plugins/ directory.
+
+Activate it from the Admin panel, and then view the EdgeCast Options and fill in the fields.
+
+All are required and described below:
+
+	* Account Number: this is located in the top left when viewing the EdgeCast control panel.
+	* API Token: this is used to authenticate you and without it, you will not be able to purge content successfully.
+	* EdgeCast URL:
+		- this is either the wac.3F21.edgecastcdn.net/3FF00 type URL 
+		  or a CNAME you have created that points to the root of your site.
+	* Object Type: you must specify whether it is a Large or Small HTTP Object. These are the only supported types presently.
+	* Enable the Plugin: if this box is not checked, it will not do anything. 
+
+== Changelog ==
+
+= 0.2 =
+* First release.
+

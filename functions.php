@@ -19,7 +19,7 @@ function wp_edgecast_init() {
 
 	add_settings_field(
 		'wp_edgecast_setting_api_token',	// id
-		'API Key',				// title
+		'API Token',				// title
 		'wp_edgecast_setting_api_token_fn',	// callback
 		'wp_edgecast',				// page
 		'wp_edgecast_settings_section'		// section
@@ -37,6 +37,14 @@ function wp_edgecast_init() {
 		'wp_edgecast_setting_media_type',	// id
 		'Object Type',				// title
 		'wp_edgecast_setting_media_type_fn',	// callback
+		'wp_edgecast',				// page
+		'wp_edgecast_settings_section'		// section
+	);
+
+	add_settings_field(
+		'wp_edgecast_setting_enabled',		// id
+		'Enable the Plugin',			// title
+		'wp_edgecast_setting_enabled_fn',	// callback
 		'wp_edgecast',				// page
 		'wp_edgecast_settings_section'		// section
 	);
@@ -113,6 +121,14 @@ function wp_edgecast_setting_media_type_fn() {
 	echo 'Choose the type of media this is, as configured in your EdgeCast control panel.';
 }
 
+function wp_edgecast_setting_enabled_fn() {
+	// output for the enabled checkbox
+	$options = get_option('wp_edgecast_options');
+	echo '<input name="wp_edgecast_options[enabled]" type="checkbox" value="1" ' . ($options['enabled'] ? 'checked="checked"' : '') . "/>";
+	echo '&nbsp;';
+	echo 'Enable the plugin for actual use. Please verify all the above data before checking this box.';
+}
+
 function wp_edgecast_page_fn() {
 	// header for the options page
 ?>
@@ -131,7 +147,36 @@ function wp_edgecast_page_fn() {
 }
 
 function wp_edgecast_options_validate($input) {
+
+	// sanitize
+	if ( $input['url'] ) {
+		if ( $input['url'] == '' ) {
+			$input['url'] = false;
+		} else {
+			// make sure it starts with http
+			if ( ! preg_match('/^http:\/\//',  $input['url']) ) {
+				$input['url'] = 'http://' . $input['url'];
+			}
+
+			// strip trailing slash
+			$input['url'] = rtrim( $input['url'], '/' );
+		}
+	} else {
+		$input['url'] = false;
+	}
+
+	if ( ! $input['api_token'] || $input['api_token'] == '' ) {
+		$input['api_token'] = false;
+	}
 	
+	if ( ! $input['account_num'] || $input['account_num'] == '' ) {
+		$input['account_num'] = false;
+	}
+
+	if ( ! $input['media_type'] ) {
+		$input['media_type'] = false;
+	}
+
 	return $input;
 }
 
@@ -142,6 +187,12 @@ function wp_edgecast_publish_post($post_id, $post) {
 	if ($post->post_status != 'publish') {
 		return;
 	}
+
+	/* make sure we're all configured */
+	$options = get_option('wp_edgecast_options');
+
+	if ( ! $options['enabled'] )
+		return;
 
 	$urls = array(
 		get_bloginfo('siteurl', 'raw'),
@@ -169,17 +220,15 @@ END;
 			array_push( $urls, get_term_link( $term, $taxonomy ) );
 		}
 	}
-	
-	$options = get_option('wp_edgecast_options');
+
+	// store data
+	$blog_url = get_bloginfo('siteurl');
+
 	foreach($urls as $url) {
 		// prepare our data
 		$data = array(
 			'MediaType' => $options['media_type'],
-			'MediaPath' => str_replace(
-				get_bloginfo('siteurl'), 
-				$options['url'], 
-				$url
-				) . '/*'
+			'MediaPath' => wp_edgecast_url_builder( $blog_url, $options['url'], $url )
 		);
 		$json_data = json_encode( $data );
 		
@@ -215,6 +264,18 @@ function wp_edgecast_comment_post( $comment_id, $approval_status ) {
 
 	$comment = get_comment( $comment_id );
 	wp_edgecast_publish_post( $comment->comment_post_ID, get_post( $comment->comment_post_ID ) );
+}
+
+function wp_edgecast_url_builder( $wp_url, $edge_url, $my_url ) {
+	// first, strip trailing slash
+	$wp_url		= rtrim( $wp_url, '/' );
+	$edge_url	= rtrim( $edge_url, '/' );
+	$my_url 	= rtrim( $my_url, '/' );
+
+	$return = str_replace( $wp_url, $edge_url, $my_url );
+	$return .= '/*';
+
+	return $return;
 }
 
 ?>
