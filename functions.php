@@ -172,22 +172,23 @@ END;
 	
 	$options = get_option('wp_edgecast_options');
 	foreach($urls as $url) {
+		// prepare our data
 		$data = array(
 			'MediaType' => $options['media_type'],
 			'MediaPath' => str_replace(
-				'//', 
-				'/', 
-				str_replace(
-					get_bloginfo('siteurl'), 
-					$options['url'], 
-					$url
+				get_bloginfo('siteurl'), 
+				$options['url'], 
+				$url
 				) . '/*'
-			)
 		);
 		$json_data = json_encode( $data );
+		
+		// write a file for the PUT
 		$tmpfile = tmpfile();
 		fwrite( $tmpfile, $json_data );
 		fseek( $tmpfile, 0 );
+
+		// setup our curl stuff
 		$ch = curl_init();
 		curl_setopt($ch, CURLOPT_URL, 'http://api.edgecast.com/v2/mcc/customers/' . $options['account_num'] . '/edge/purge');
 		curl_setopt($ch, CURLOPT_PUT, true);
@@ -196,17 +197,15 @@ END;
 		curl_setopt($ch, CURLOPT_VERBOSE, true);
 		curl_setopt($ch, CURLOPT_HTTPHEADER, 
 			array(
-				'Authorization'	=> 'TOK:'. $options['api_token'],
-				'Accept'	=> 'application/json',
-				'Content-Type'	=> 'application/json'
+				'Authorization: TOK:'. $options['api_token'],
+				'Accept: application/json',
+				'Content-Type: application/json'
 			) 
 		);
 
 		$result = curl_exec( $ch );
 		curl_close( $ch );
 	}
-	echo "<pre>";
-	var_dump( $urls );
 }
 
 function wp_edgecast_comment_post( $comment_id, $approval_status ) {
