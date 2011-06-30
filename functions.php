@@ -132,7 +132,7 @@ function wp_edgecast_setting_enabled_fn() {
 function wp_edgecast_page_fn() {
 	// header for the options page
 	$options = get_option('wp_edgecast_options');
-	$blog_url = get_bloginfo('siteurl');
+	$blog_url = get_bloginfo('url');
 
 	if ( isset( $_POST['wp_edgecast_hidden'] ) && $_POST['wp_edgecast_hidden'] == 'Y' && $options['enabled'] ) {
 		// Purge that cache!
