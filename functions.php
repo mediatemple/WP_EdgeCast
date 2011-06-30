@@ -143,7 +143,7 @@ function wp_edgecast_page_fn() {
 
 		$json_data = json_encode( $data );
 		// write a file for the PUT
-		$tmpfil = tmpfile();
+		$tmpfile = tmpfile();
 		fwrite( $tmpfile, $json_data );
 		fseek( $tmpfile, 0 );
 
