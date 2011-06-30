@@ -26,6 +26,9 @@ All are required and described below:
 	* Object Type: you must specify whether it is a Large or Small HTTP Object. These are the only supported types presently.
 	* Enable the Plugin: if this box is not checked, it will not do anything. 
 
+In regards to PHP libraries, you will need the following functions available:
+	* curl
+	* json_encode
 == Changelog ==
 
 = 0.2 =

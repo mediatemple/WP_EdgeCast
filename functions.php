@@ -131,6 +131,40 @@ function wp_edgecast_setting_enabled_fn() {
 
 function wp_edgecast_page_fn() {
 	// header for the options page
+	$options = get_option('wp_edgecast_options');
+	$blog_url = get_bloginfo('siteurl');
+
+	if ( isset( $_POST['wp_edgecast_hidden'] ) && $_POST['wp_edgecast_hidden'] == 'Y' && $options['enabled'] ) {
+		// Purge that cache!
+		$data = array(
+			'MediaType' => $options['media_type'],
+			'MediaPath' => wp_edgecast_url_builder( $blog_url, $options['url'], '' ),
+		);
+
+		$json_data = json_encode( $data );
+		// write a file for the PUT
+		$tmpfil = tmpfile();
+		fwrite( $tmpfil, $json_data );
+		fseek( $tmpfile, 0 );
+
+		$ch = curl_init();
+		curl_setopt($ch, CURLOPT_URL, 'http://api.edgecast.com/v2/mcc/customers/' . $options['account_num'] . '/edge/purge');
+		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+		curl_setopt($ch, CURLOPT_PUT, true);
+		curl_setopt($ch, CURLOPT_INFILE, $tmpfile);
+		curl_setopt($ch, CURLOPT_INFILESIZE, strlen( $json_data ));
+		curl_setopt($ch, CURLOPT_VERBOSE, true);
+		curl_setopt($ch, CURLOPT_HTTPHEADER, 
+			array(
+				'Authorization: TOK:'. $options['api_token'],
+				'Accept: application/json',
+				'Content-Type: application/json'
+			) 
+		);
+
+		$result = curl_exec( $ch );
+		curl_close( $ch );
+	}
 ?>
 	<div class="wrap">
 		<div class="icon32" id="icon-options-general"><br /></div>
@@ -140,6 +174,17 @@ function wp_edgecast_page_fn() {
 		<?php do_settings_sections('wp_edgecast'); ?>
 		<p class='submit'>
 			<input name="submit" type="submit" class="button-primary" value="<? esc_attr_e('Save Changes'); ?>" />
+		</p>
+		</form>
+	</div>
+	<div class="wrap">
+		<div class="icon32" id="icon-options-general"><br /></div>
+		<h2>Purge Cache</h2>
+		<p>This will send a purge request to EdgeCast for the entirety of your site.</p>
+		<form action="<?php echo $_SERVER['REQUEST_URI']; ?>" method="post">
+		<input type='hidden' name='wp_edgecast_hidden' value='Y'/>
+		<p class='submit'>
+			<input class='button-primary' type='submit' value='Purge Cache'/>
 		</p>
 		</form>
 	</div>
@@ -245,7 +290,7 @@ END;
 		// setup our curl stuff
 		$ch = curl_init();
 		curl_setopt($ch, CURLOPT_URL, 'http://api.edgecast.com/v2/mcc/customers/' . $options['account_num'] . '/edge/purge');
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 		curl_setopt($ch, CURLOPT_PUT, true);
 		curl_setopt($ch, CURLOPT_INFILE, $tmpfile);
 		curl_setopt($ch, CURLOPT_INFILESIZE, strlen( $json_data ));
@@ -278,7 +323,11 @@ function wp_edgecast_url_builder( $wp_url, $edge_url, $my_url ) {
 	$edge_url	= rtrim( $edge_url, '/' );
 	$my_url 	= rtrim( $my_url, '/' );
 
-	$return = str_replace( $wp_url, $edge_url, $my_url );
+	if ( $my_url == '' ) {
+		$return = $edge_url;
+	} else {
+		$return = str_replace( $wp_url, $edge_url, $my_url );
+	}
 	$return .= '/*';
 
 	return $return;
